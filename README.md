@@ -1,11 +1,19 @@
 <h1 align="center"> Cash Flow </h1>
 
+# O Projeto
+
 Projeto feito em Java 17 com objetivo de controlar lançamentos de fluxos de caixa (Créditos e Débitos), assim como, consultar os respectivos lançamentos e saldos diários ou total.
 
-Para executar o projeto é necessário ter o Docker instalado e rodar o seguinte comando dentro da pasta <b>lançamento</b>:
+O projeto foi construindo expondo uma API Rest contendo os seguintes serviços: 
 
-```
-docker compose up -d
-```
+- Registrar lançamentos de débito
+- Registrar lançamentos de crédito
+- Consultar lançamentos
+- Consultar lançamentos por dia
+- Consultar saldo atual
 
-Dentro da pasta lançamento também possui um arquivo <b>"CashFlow.postman_collection.json"</b>. Este arquivo contem a collection do Postman com as chamadas da API EntryController.
+Mais detalhes é possível ver na documentação do [Swagger](http://localhost:8080/swagger-ui/index.html#/) disponibilizada.
+Obs.: Esta documentação ficará acessível quando a aplicação for iniciada.
+
+
+
