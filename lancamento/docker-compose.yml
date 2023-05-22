@@ -9,3 +9,11 @@ services:
      - POSTGRES_DB=cash_flow
     ports:
         - "5432:5432"
+  web:
+    build:
+      dockerfile: Dockerfile
+    image: entry:0.0.1-SNAPSHOT
+    ports:
+      - "8080:8080"
+
+

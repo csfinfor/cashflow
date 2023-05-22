@@ -16,6 +16,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -40,8 +42,8 @@ public class EntryController {
             @ApiResponse(responseCode = "200", description = "Successful operation", content = { @Content(mediaType = "application/xml", schema = @Schema(implementation = PayBoxEntryDTO.class)), @Content(mediaType = "application/json", schema = @Schema(implementation = PayBoxEntryDTO.class)) })})
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity listAll(){
-        List<PayBoxEntryDTO> dtoList = service.findAll();
+    public ResponseEntity listAll(Pageable pageable){
+        Page<PayBoxEntryDTO> dtoList = service.findAll(pageable);
         return new ResponseEntity(dtoList, HttpStatus.OK);
     }
     @Operation(summary  = "Retorna o saldo por dia"
@@ -66,22 +68,37 @@ public class EntryController {
         return new ResponseEntity(dto , HttpStatus.OK);
     }
 
-
-
-    @Operation(summary  = "Persistir lançamentos do fluxo de caixa"
-            ,description = "Persistir lançamentos do fluxo de caixa")
+    @Operation(summary  = "Persistir lançamentos de credito do fluxo de caixa"
+            ,description = "Persistir lançamentos de credito do fluxo de caixa")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successful operation", content = { @Content(mediaType = "application/xml", schema = @Schema(implementation = PayBoxEntry.class)), @Content(mediaType = "application/json", schema = @Schema(implementation = PayBoxEntry.class)) }),
             @ApiResponse(responseCode = "400", description = "Invalid input")})
-    @PostMapping
+    @PostMapping("/credit")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity saveEntry(@Valid @RequestBody PayBoxEntryDTO entry){
+    public ResponseEntity saveEntryCredit(@Valid @RequestBody PayBoxEntryDTO entry){
         ObjectMapper mapper = new ObjectMapper()
                 .registerModule(new ParameterNamesModule())
                 .registerModule(new Jdk8Module())
                 .registerModule(new JavaTimeModule());
         PayBoxEntry entryConvert =  mapper.convertValue(entry, PayBoxEntry.class);
-        service.salvarLancamento(entryConvert);
+        service.salvarLancamentoCredito(entryConvert);
+        return new ResponseEntity(HttpStatus.OK);
+    }
+
+    @Operation(summary  = "Persistir lançamentos de debito do fluxo de caixa"
+            ,description = "Persistir lançamentos de debito  do fluxo de caixa")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successful operation", content = { @Content(mediaType = "application/xml", schema = @Schema(implementation = PayBoxEntry.class)), @Content(mediaType = "application/json", schema = @Schema(implementation = PayBoxEntry.class)) }),
+            @ApiResponse(responseCode = "400", description = "Invalid input")})
+    @PostMapping("/debit")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity saveEntryDebit(@Valid @RequestBody PayBoxEntryDTO entry){
+        ObjectMapper mapper = new ObjectMapper()
+                .registerModule(new ParameterNamesModule())
+                .registerModule(new Jdk8Module())
+                .registerModule(new JavaTimeModule());
+        PayBoxEntry entryConvert =  mapper.convertValue(entry, PayBoxEntry.class);
+        service.salvarLancamentoDebito(entryConvert);
         return new ResponseEntity(HttpStatus.OK);
     }
 

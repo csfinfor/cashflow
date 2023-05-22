@@ -1,8 +1,11 @@
 package com.cashflow.entry.domain;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -10,10 +13,13 @@ import java.time.LocalDateTime;
 @Data
 @Entity
 @Table(name = "pay_box_entry")
+@AllArgsConstructor
+@NoArgsConstructor
 public class PayBoxEntry{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonIgnore
     private Long id;
 
     @Column(name="entry_value")

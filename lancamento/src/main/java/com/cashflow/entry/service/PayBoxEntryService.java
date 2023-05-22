@@ -1,6 +1,5 @@
 package com.cashflow.entry.service;
 
-import com.cashflow.entry.domain.EntryType;
 import com.cashflow.entry.domain.PayBoxEntry;
 import com.cashflow.entry.dto.PayBoxEntryDTO;
 import com.cashflow.entry.dto.PayBoxEntryPerDayDTO;
@@ -10,7 +9,8 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -27,34 +27,14 @@ public class PayBoxEntryService {
     @Autowired
     private PayBoxEntryRepository repository;
 
-    public void salvarLancamento(PayBoxEntry entry){
-        Optional<PayBoxEntry> entryLast = repository.findTopByOrderByIdDesc();
+    public Page<PayBoxEntryDTO>     findAll(Pageable pageable) {
 
-        if(entryLast.isPresent()){
-            if(entry.getEntryType().equals(EntryType.CREDIT)){
-                entry.setPayBoxTotal(entryLast.get().getPayBoxTotal().add(entry.getEntryValue()));
-                entry.setEntryValue(entry.getEntryValue().multiply(BigDecimal.ONE));
-            }else {
-                entry.setPayBoxTotal(entryLast.get().getPayBoxTotal().subtract(entry.getEntryValue()));
-                entry.setEntryValue(entry.getEntryValue().multiply(BigDecimal.ONE.negate()));
-            }
-        }else{
-            entry.setPayBoxTotal(entry.getEntryValue());
-        }
-        if(entry.getEntryDate() == null){
-            entry.setEntryDate(LocalDateTime.now());
-        }
-        repository.save(entry);
-    }
-
-    public List<PayBoxEntryDTO> findAll() {
-
-        List<PayBoxEntry> listRepo = repository.findAllByOrderByEntryDateAsc();
+        Page<PayBoxEntry> listRepo = repository.findAllByOrderByEntryDateAsc(pageable);
         ObjectMapper mapper = new ObjectMapper()
                 .registerModule(new ParameterNamesModule())
                 .registerModule(new Jdk8Module())
                 .registerModule(new JavaTimeModule());
-        List<PayBoxEntryDTO> listReturn = mapper.convertValue(listRepo, List.class);
+        Page<PayBoxEntryDTO> listReturn = mapEntityPageIntoDtoPage(listRepo, PayBoxEntryDTO.class);
         return listReturn;
     }
 
@@ -70,5 +50,41 @@ public class PayBoxEntryService {
         }else{
             return new PayBoxEntryPerDayDTO(new SimpleDateFormat("dd/MM/yyyy").format(new Date()), BigDecimal.ZERO);
         }
+    }
+
+    public void salvarLancamentoCredito(PayBoxEntry entry) {
+        Optional<PayBoxEntry> entryLast = repository.findTopByOrderByIdDesc();
+        if(entryLast.isPresent()){
+                entry.setPayBoxTotal(entryLast.get().getPayBoxTotal().add(entry.getEntryValue()));
+                entry.setEntryValue(entry.getEntryValue().multiply(BigDecimal.ONE));
+        }else{
+            entry.setPayBoxTotal(entry.getEntryValue());
+        }
+        if(entry.getEntryDate() == null){
+            entry.setEntryDate(LocalDateTime.now());
+        }
+        repository.save(entry);
+    }
+
+    public void salvarLancamentoDebito(PayBoxEntry entry) {
+        Optional<PayBoxEntry> entryLast = repository.findTopByOrderByIdDesc();
+        if(entryLast.isPresent()){
+            entry.setPayBoxTotal(entryLast.get().getPayBoxTotal().subtract(entry.getEntryValue()));
+            entry.setEntryValue(entry.getEntryValue().multiply(BigDecimal.ONE.negate()));
+        }else{
+            entry.setPayBoxTotal(entry.getEntryValue());
+        }
+        if(entry.getEntryDate() == null){
+            entry.setEntryDate(LocalDateTime.now());
+        }
+        repository.save(entry);
+    }
+
+    public <D, T> Page<D> mapEntityPageIntoDtoPage(Page<T> entities, Class<D> dtoClass) {
+        ObjectMapper mapper = new ObjectMapper()
+                .registerModule(new ParameterNamesModule())
+                .registerModule(new Jdk8Module())
+                .registerModule(new JavaTimeModule());
+        return entities.map(objectEntity -> mapper.convertValue(objectEntity, dtoClass));
     }
 }
